@@ -1,4 +1,4 @@
-def calculate_tax(total_compensation, pre_tax_deductions, itemized_deductions, filing_status, traditional_ira_contributions):
+def calculate_tax(total_compensation, pre_tax_deductions, itemized_deductions, filing_status, traditional_roth_ira_contributions, roth_conversions):
     # Tax brackets for 2024
     brackets_single = [(0, 11600, 0.10), (11601, 47150, 0.12), (47151, 100525, 0.22), (100526,
                                                                                        191950, 0.24), (191951, 243725, 0.32), (243726, 609350, 0.35), (609351, float('inf'), 0.37)]
@@ -10,7 +10,7 @@ def calculate_tax(total_compensation, pre_tax_deductions, itemized_deductions, f
     standard_deduction_married = 29200
 
     # Apply pre-tax deductions
-    taxable_income = total_compensation - pre_tax_deductions
+    taxable_income = total_compensation + extra_income - pre_tax_deductions
 
     # Determine standard deduction based on filing status
     if filing_status.lower() == 'single':
@@ -23,24 +23,14 @@ def calculate_tax(total_compensation, pre_tax_deductions, itemized_deductions, f
         raise ValueError(
             "Invalid filing status. Please enter 'single' or 'married'.")
 
-    # Determine if traditional IRA contributions are deductible
-    deductible_ira = 0
-    if filing_status.lower() == 'single':
-        if taxable_income > 0 and taxable_income <= 73000:
-            deductible_ira = min(traditional_ira_contributions, 6000)
-        elif taxable_income > 73000 and taxable_income <= 84000:
-            deductible_ira = min(traditional_ira_contributions, 6000 - 0.2 * (taxable_income - 73000))
-    elif filing_status.lower() == 'married':
-        if taxable_income > 0 and taxable_income <= 122000:
-            deductible_ira = min(traditional_ira_contributions, 6000)
-        elif taxable_income > 122000 and taxable_income <= 140000:
-            deductible_ira = min(traditional_ira_contributions, 6000 - 0.2 * (taxable_income - 122000))
+    # Include Roth conversions in taxable income
+    taxable_income += roth_conversions
 
     # Compare itemized deductions with standard deduction
     if itemized_deductions > standard_deduction:
-        deductible_income = taxable_income - itemized_deductions + deductible_ira
+        deductible_income = taxable_income - itemized_deductions + traditional_roth_ira_contributions
     else:
-        deductible_income = taxable_income - standard_deduction + deductible_ira
+        deductible_income = taxable_income - standard_deduction + traditional_roth_ira_contributions
 
     # Calculate tax
     tax = 0
@@ -60,9 +50,11 @@ def calculate_tax(total_compensation, pre_tax_deductions, itemized_deductions, f
 # Input prompts
 print("Please enter the following information:")
 total_compensation = float(input("Total compensation: $"))
+extra_income = float(input("Extra income: $"))
 pre_tax_deductions = float(input("Pre-tax deductions (e.g., 401k, parking, vision, health, dental), excluding standard deduction: $"))
+roth_conversions = float(input("Roth conversions (pre-tax dollars converted to Roth IRA): $"))
 mortgage_interest = float(input("Mortgage interest paid: $"))
-traditional_ira_contributions = float(input("IRA contributions(include Traditional and Roth): $"))
+traditional_roth_ira_contributions = float(input("Traditional or Roth IRA contributions: $"))
 student_loan_interest = float(input("Student loan interest paid: $"))
 hsa_contributions = float(input("HSA contributions: $"))
 property_taxes = float(input("Property taxes paid: $"))
@@ -73,7 +65,7 @@ filing_status = input("Filing status (single/married): ")
 
 # Calculate tax
 tax = calculate_tax(
-    total_compensation, pre_tax_deductions, itemized_deductions, filing_status, traditional_ira_contributions)
+    total_compensation, pre_tax_deductions, itemized_deductions, filing_status, traditional_roth_ira_contributions, roth_conversions)
 
 # Calculate effective tax rate
 effective_tax_rate = (tax / total_compensation) * 100
@@ -81,9 +73,9 @@ effective_tax_rate = (tax / total_compensation) * 100
 # Output
 print("\nTax Calculation Results:")
 print("-------------------------------")
-print("Total compensation: ${:,.2f}".format(total_compensation))
+print("Total compensation: ${:,.2f}".format(total_compensation + extra_income))
 print("Pre-tax deductions: ${:,.2f}".format(pre_tax_deductions))
-print("Taxable income: ${:,.2f}".format(total_compensation - pre_tax_deductions))
+print("Taxable income: ${:,.2f}".format(total_compensation + extra_income - pre_tax_deductions))
 print("Total itemized deductions: ${:,.2f}".format(itemized_deductions))
 print("-------------------------------")
 print("You will owe ${:,.2f} in federal income tax".format(tax))
