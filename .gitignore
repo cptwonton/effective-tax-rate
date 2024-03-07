@@ -1,0 +1,23 @@
+# Python-related ignores
+*.pyc
+__pycache__/
+venv/
+.vscode/
+
+# Node.js / React-related ignores
+node_modules/
+dist/
+.cache/
+
+# ASDF-related ignores
+.asdf/
+
+# Vite-related ignores
+.yarn/
+.yarnrc.yml
+
+# IDE/Editor-related ignores
+.vscode/
+
+# Miscellaneous ignores
+.DS_Store
